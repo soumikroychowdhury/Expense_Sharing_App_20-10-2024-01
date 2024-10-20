@@ -27,8 +27,15 @@ exports.addExpense = async (req, res) => {
   // Additional validation based on split method
   if (splitMethod === 'percentage') {
     const totalPercentage = participants.reduce((acc, p) => acc + (p.percentage || 0), 0);
+    console.log(`Total percentage: ${totalPercentage}`); // Debugging log
     if (totalPercentage !== 100) {
       return res.status(400).json({ message: 'Total percentage must add up to 100%' });
+    }
+  } else if (splitMethod === 'exact') {
+    const totalExactAmount = participants.reduce((acc, p) => acc + (p.amount || 0), 0);
+    console.log(`Total exact amount: ${totalExactAmount}`); // Debugging log
+    if (totalExactAmount !== amount) {
+      return res.status(400).json({ message: 'Total amount of participants must equal the expense amount' });
     }
   }
 
@@ -115,7 +122,7 @@ exports.downloadBalanceSheet = async (req, res) => {
         } else if (expense.splitMethod === 'exact') {
           owedAmount = part.amount;
         } else if (expense.splitMethod === 'percentage') {
-          owedAmount = (expense.amount * part.percentage) / 100;
+          owedAmount = (expense.amount * (part.percentage || 0)) / 100;
         }
 
         if (participant !== payer) {
